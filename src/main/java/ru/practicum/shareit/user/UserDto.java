@@ -8,12 +8,14 @@ import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 
 @Value
-@Builder(toBuilder = true)
-public class User {
+@Builder
+public class UserDto {
+
     long id;
     @NotBlank
     String name;
     @NotNull
     @Email
     String email;
+
 }
