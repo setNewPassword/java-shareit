@@ -1,7 +1,7 @@
 package ru.practicum.shareit.user.impl;
 
 import org.springframework.stereotype.Repository;
-import ru.practicum.shareit.user.User;
+import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.UserRepository;
 
 import java.util.*;
@@ -43,7 +43,7 @@ public class UserRepositoryImpl implements UserRepository {
 
     @Override
     public boolean existsById(long userId) {
-        return users.containsKey(userId);
+        return users.get(userId) != null;
     }
 
     @Override

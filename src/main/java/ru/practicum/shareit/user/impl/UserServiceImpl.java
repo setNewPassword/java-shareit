@@ -6,7 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import ru.practicum.shareit.exception.EmailAlreadyExistException;
 import ru.practicum.shareit.exception.UserNotFoundException;
-import ru.practicum.shareit.user.User;
+import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.UserRepository;
 import ru.practicum.shareit.user.UserService;
 
@@ -30,8 +30,7 @@ public class UserServiceImpl implements UserService {
     public User update(User user) {
         checkUserIsRegistered(user);
         long userId = user.getId();
-        User savedUser = userRepository.getById(userId).orElseThrow(() ->
-                new UserNotFoundException(String.format("Пользователь с id = %d не найден.", userId)));
+        User savedUser = getById(userId);
         String name = user.getName() == null ? savedUser.getName() : user.getName();
         String email = user.getEmail() == null ? savedUser.getEmail() : user.getEmail();
         user = User.builder()
