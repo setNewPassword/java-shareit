@@ -9,6 +9,7 @@ import ru.practicum.shareit.item.ItemRepository;
 import ru.practicum.shareit.item.ItemService;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.user.UserService;
+import ru.practicum.shareit.user.model.User;
 
 import java.util.Collections;
 import java.util.List;
@@ -22,16 +23,24 @@ public class ItemServiceImpl implements ItemService {
     private final UserService userService;
 
     @Override
-    public Item add(Item item) {
+    public Item add(Item item, long userId) {
+        User user = userService.getById(userId);
+        item = item.toBuilder()
+                .owner(user)
+                .build();
         item = itemRepository.save(item);
         log.info("Добавлен новый предмет: {}.", item);
         return item;
     }
 
     @Override
-    public Item update(Item item) {
+    public Item update(Item item, long userId, long itemId) {
+        User user = userService.getById(userId);
+        item = item.toBuilder()
+                .id(itemId)
+                .owner(user)
+                .build();
         checkItemOwner(item);
-        long itemId = item.getId();
         Item savedItem = getById(itemId);
         String name = item.getName() == null ? savedItem.getName() : item.getName();
         String description = item.getDescription() == null ? savedItem.getDescription() : item.getDescription();

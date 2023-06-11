@@ -7,7 +7,6 @@ import org.springframework.web.bind.annotation.*;
 import ru.practicum.shareit.item.dto.ItemDto;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.user.UserService;
-import ru.practicum.shareit.user.model.User;
 
 import javax.validation.Valid;
 import java.util.List;
@@ -19,7 +18,6 @@ import java.util.stream.Collectors;
 public class ItemController {
 
     private final ItemService itemService;
-    private final UserService userService;
     private final ItemMapper itemMapper;
 
     @PostMapping
@@ -27,25 +25,16 @@ public class ItemController {
     public ItemDto create(@RequestHeader("X-Sharer-User-Id") long userId,
                           @RequestBody @Valid ItemDto itemDto) {
         Item item = itemMapper.toEntity(itemDto);
-        User user = userService.getById(userId);
-        item = item.toBuilder()
-                .owner(user)
-                .build();
-        item = itemService.add(item);
+        item = itemService.add(item, userId);
         return itemMapper.toDto(item);
     }
 
     @PatchMapping("/{id}")
-    public ItemDto changeInfo(@RequestHeader("X-Sharer-User-Id") long userId,
-                              @PathVariable("id") long itemId,
-                              @RequestBody ItemDto itemDto) {
-        User user = userService.getById(userId);
+    public ItemDto update(@RequestHeader("X-Sharer-User-Id") long userId,
+                          @PathVariable("id") long itemId,
+                          @RequestBody ItemDto itemDto) {
         Item item = itemMapper.toEntity(itemDto);
-        item = item.toBuilder()
-                .id(itemId)
-                .owner(user)
-                .build();
-        item = itemService.update(item);
+        item = itemService.update(item, userId, itemId);
         return itemMapper.toDto(item);
     }
 

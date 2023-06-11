@@ -27,9 +27,13 @@ public class UserController {
     }
 
     @PatchMapping("/{id}")
-    public UserDto updateInfo(@PathVariable("id") long userId,
-                              @RequestBody UserDto userDto) {
-        User user = userMapper.toEntity(userDto).toBuilder().id(userId).build();
+    public UserDto update(@PathVariable("id") long userId,
+                          @RequestBody UserDto userDto) {
+        User user = userMapper
+                .toEntity(userDto)
+                .toBuilder()
+                .id(userId)
+                .build();
         user = userService.update(user);
         return userMapper.toDto(user);
     }
