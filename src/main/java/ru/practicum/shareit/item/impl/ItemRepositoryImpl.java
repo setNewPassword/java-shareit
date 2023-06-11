@@ -13,6 +13,7 @@ public class ItemRepositoryImpl implements ItemRepository {
 
     private static long counter;
     private final Map<Long, Item> items = new HashMap<>();
+
     @Override
     public Item save(Item item) {
         if (item.getId() == 0) {

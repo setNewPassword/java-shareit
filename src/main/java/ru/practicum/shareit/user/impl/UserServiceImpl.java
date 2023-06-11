@@ -6,9 +6,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import ru.practicum.shareit.exception.EmailAlreadyExistException;
 import ru.practicum.shareit.exception.UserNotFoundException;
-import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.UserRepository;
 import ru.practicum.shareit.user.UserService;
+import ru.practicum.shareit.user.model.User;
 
 import java.util.List;
 import java.util.Optional;
@@ -18,6 +18,7 @@ import java.util.Optional;
 @Slf4j
 public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
+
     @Override
     public User add(User user) {
         checkUserIsRegistered(user);
@@ -49,7 +50,7 @@ public class UserServiceImpl implements UserService {
         return userRepository
                 .getById(userId)
                 .orElseThrow(() ->
-                new UserNotFoundException(String.format("Пользователь с id = %d не найден.", userId)));
+                        new UserNotFoundException(String.format("Пользователь с id = %d не найден.", userId)));
     }
 
     @Override
