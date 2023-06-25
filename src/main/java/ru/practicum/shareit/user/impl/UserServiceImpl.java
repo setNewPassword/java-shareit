@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.shareit.exception.EmailAlreadyExistException;
 import ru.practicum.shareit.exception.UserNotFoundException;
 import ru.practicum.shareit.user.UserRepository;
@@ -21,12 +22,13 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public User add(User user) {
-        checkUserIsRegistered(user);
+        //checkUserIsRegistered(user);
         user = userRepository.save(user);
         log.info("Создан новый пользователь: {}.", user);
         return user;
     }
 
+    @Transactional
     @Override
     public User update(User user) {
         checkUserIsRegistered(user);
@@ -44,21 +46,24 @@ public class UserServiceImpl implements UserService {
         return user;
     }
 
+    @Transactional(readOnly = true)
     @Override
     public User getById(long userId) {
         log.info(String.format("Запрос на получение пользователя по id: %d.", userId));
         return userRepository
-                .getById(userId)
+                .findById(userId)
                 .orElseThrow(() ->
                         new UserNotFoundException(String.format("Пользователь с id = %d не найден.", userId)));
     }
 
+    @Transactional(readOnly = true)
     @Override
     public List<User> getAll() {
         log.info("Запрос на получение всех пользователей.");
-        return userRepository.getAll();
+        return userRepository.findAll();
     }
 
+    @Transactional
     @Override
     public void deleteById(long userId) {
         checkUserExists(userId);
@@ -66,6 +71,7 @@ public class UserServiceImpl implements UserService {
         log.info(String.format("Пользователь с id = %d удален.", userId));
     }
 
+    @Transactional(readOnly = true)
     @Override
     public void checkUserExists(long userId) {
         if (!userRepository.existsById(userId)) {
@@ -74,8 +80,8 @@ public class UserServiceImpl implements UserService {
     }
 
     private void checkUserIsRegistered(User user) {
-        Optional<Long> registeredUserId = userRepository.findUserIdByEmail(user.getEmail());
-        if (registeredUserId.isPresent() && registeredUserId.get() != user.getId()) {
+        Optional<User> registeredUser = userRepository.findUserByEmail(user.getEmail());
+        if (registeredUser.isPresent() && registeredUser.get().getId() != user.getId()) {
             throw new EmailAlreadyExistException(
                     String.format("Пользователь с Email: %s уже зарегистрирован.", user.getEmail()));
         }

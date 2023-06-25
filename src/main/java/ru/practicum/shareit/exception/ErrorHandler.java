@@ -38,6 +38,15 @@ public class ErrorHandler {
         return new ErrorResponse(exception.getMessage());
     }
 
+/*    @ExceptionHandler
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ErrorResponse handleIllegalArgumentException(IllegalArgumentException exception) {
+        log(exception);
+        String text = exception.getMessage();
+        String cause = text.substring(text.lastIndexOf("."));
+        throw new BadRequestException(cause);
+    }*/
+
     @ExceptionHandler
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     protected ErrorResponse handleHttpMessageNotReadable(HttpMessageNotReadableException exception) {
@@ -74,7 +83,14 @@ public class ErrorHandler {
         return new ErrorResponse(errorReport.keySet().toString() + errorReport.values());
     }
 
+    @ExceptionHandler
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    protected ErrorResponse handleBadRequestException(BadRequestException exception) {
+        log(exception);
+        return new ErrorResponse("Unknown state: " + exception.getMessage());
+    }
+
     private void log(Exception ex) {
-        log.error("{}: {}.", ex.getClass().getSimpleName(), ex.getMessage());
+        log.error("{}: {}", ex.getClass().getSimpleName(), ex.getMessage());
     }
 }
