@@ -24,6 +24,8 @@ public interface BookingMapper {
                 .build();
     }
 
+    ;
+
     Booking toEntity(BookingDto bookingDto);
 
     Booking toEntity(BookingShortDto bookingShortDto);

@@ -18,7 +18,9 @@ public interface CommentMapper {
                 .authorName(comment.getAuthor().getName())
                 .created(comment.getCreated())
                 .build();
-    };
+    }
+
+    ;
 
     Comment toEntity(CommentDto commentDto);
 }

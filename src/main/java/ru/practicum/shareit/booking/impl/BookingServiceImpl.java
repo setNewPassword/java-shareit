@@ -140,8 +140,8 @@ public class BookingServiceImpl implements BookingService {
             case WAITING:
                 bookingsList.addAll(bookingRepository
                         .findAllByItemOwnerAndStatusEquals(owner, Status.WAITING, sort));
-                log.info(String.
-                        format("Запрошены все бронирования пользователя-владельца с id = %d, ожидающие подтверждения.",
+                log.info(String
+                        .format("Запрошены все бронирования пользователя-владельца с id = %d, ожидающие подтверждения.",
                                 ownerId));
                 break;
 
@@ -202,8 +202,8 @@ public class BookingServiceImpl implements BookingService {
             case WAITING:
                 bookingDtoList.addAll(bookingRepository
                         .findAllByBookerAndStatusEquals(booker, Status.WAITING, sort));
-                log.info(String.
-                        format("Запрошены все бронирования пользователя-букера с id = %d, ожидающие подтверждения.",
+                log.info(String
+                        .format("Запрошены все бронирования пользователя-букера с id = %d, ожидающие подтверждения.",
                                 bookerId));
                 break;
 
@@ -232,8 +232,8 @@ public class BookingServiceImpl implements BookingService {
                 .orElseThrow(() -> new BookingNotFoundException(String
                         .format("Бронирование с id = %d не найдено.", bookingId)));
         if (!userId.equals(booking.getBooker().getId()) && !userId.equals(booking.getItem().getOwner().getId())) {
-            throw new BookingNotFoundException
-                    ("Доступ запрещен — вы не являетесь владельцем предмета и не являетесь его арендатором.");
+            throw new BookingNotFoundException(
+                    "Доступ запрещен — вы не являетесь владельцем предмета и не являетесь его арендатором.");
         }
 
         return bookingMapper.toDto(booking);
