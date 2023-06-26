@@ -7,6 +7,5 @@ public enum State {
     FUTURE,
     WAITING,
     REJECTED,
-//    @JsonEnumDefaultValue
     UNSUPPORTED_STATUS
 }

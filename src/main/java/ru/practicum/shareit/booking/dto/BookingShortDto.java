@@ -10,13 +10,18 @@ import java.time.LocalDateTime;
 @Value
 @Builder(toBuilder = true)
 public class BookingShortDto {
+
     Long id;
+
     @NotNull
     @FutureOrPresent
     LocalDateTime start;
+
     @NotNull
     @FutureOrPresent
     LocalDateTime end;
+
     Long itemId;
+
     Long bookerId;
 }

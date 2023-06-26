@@ -1,6 +1,5 @@
 package ru.practicum.shareit.booking.impl;
 
-import com.fasterxml.jackson.databind.DeserializationFeature;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;

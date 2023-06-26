@@ -39,7 +39,6 @@ public class ItemServiceImpl implements ItemService {
     private final BookingRepository bookingRepository;
     private final CommentRepository commentRepository;
     private final CommentMapper commentMapper;
-    private final BookingMapper bookingMapper;
     private final ItemMapper itemMapper;
 
     @Override
@@ -81,27 +80,6 @@ public class ItemServiceImpl implements ItemService {
         item = itemRepository.save(item);
 
         return itemMapper.toDto(item);
-
-        /*User user = userService.getById(userId);
-        item = item.toBuilder()
-                .id(itemId)
-                .owner(user)
-                .build();
-        checkItemOwner(item);
-        Item savedItem = getById(itemId, userId);
-        String name = item.getName() == null ? savedItem.getName() : item.getName();
-        String description = item.getDescription() == null ? savedItem.getDescription() : item.getDescription();
-        boolean available = item.getAvailable() == null ? savedItem.getAvailable() : item.getAvailable();
-        item = Item.builder()
-                .id(itemId)
-                .name(name)
-                .description(description)
-                .available(available)
-                .owner(savedItem.getOwner())
-                .build();
-        item = itemRepository.save(item);
-        log.info("Данные предмета обновлены: {}.", item);
-        return item;*/
     }
 
     @Transactional(readOnly = true)
@@ -163,7 +141,6 @@ public class ItemServiceImpl implements ItemService {
         log.info(String.format("Удален предмет с id = %d.", itemId));
     }
 
-//    @Transactional
     @Override
     public List<ItemDto> getItemsByUserId(long userId) {
         log.info(String.format("Запрошен список предметов, принадлежащих пользователю с id = %d.", userId));
@@ -172,13 +149,13 @@ public class ItemServiceImpl implements ItemService {
         if (items.isEmpty()) {
             return Collections.emptyList();
         }
-        System.out.println("!!!!!!!!!!!!!!!!! Items list size = " + items.size());
 
 
         List<ItemDto> itemDtoList = items.stream()
                 .map(itemMapper::toDto)
                 .collect(Collectors.toList());
-        System.out.println("!!!!!!!!!!!!!!!!! ItemDTO list size = " + itemDtoList.size());
+
+        List<ItemDto> fullItemDtoList = new ArrayList<>();
 
         for (ItemDto itemDto : itemDtoList) {
             itemDto = itemDto
@@ -194,36 +171,27 @@ public class ItemServiceImpl implements ItemService {
                     LocalDateTime.now(),
                     Status.APPROVED,
                     Sort.by(Sort.Direction.DESC, "start"));
-            System.out.println("!!!!!!!!!!!!!!!!! Size of lastBooking = " + lastBooking.size());
-            System.out.println("!!!!!!!!!!!!!!!!! Item ID = " + itemDto.getId());
+
             itemDto = itemDto
                     .toBuilder()
                     .lastBooking(lastBooking.isEmpty() ? null : BookingMapper.toShortDto(lastBooking.get(0)))
                     .build();
-            System.out.println("!!!!!!!!!!!!!!!!! Item ID = " + itemDto.getId());
-            System.out.println("!!!!!!!!!!!!!!!!! LAST = " + itemDto.getLastBooking());
 
             List<Booking> nextBooking = bookingRepository.findTop1BookingByItemIdAndStartIsAfterAndStatusIs(
                     itemDto.getId(),
                     LocalDateTime.now(),
                     Status.APPROVED,
                     Sort.by(Sort.Direction.ASC, "start"));
-            System.out.println("!!!!!!!!!!!!!!!!! Size of nextBooking = " + nextBooking.size());
-            System.out.println("!!!!!!!!!!!!!!!!! Item ID = " + itemDto.getId());
+
             itemDto = itemDto
                     .toBuilder()
                     .nextBooking(nextBooking.isEmpty() ? null : BookingMapper.toShortDto(nextBooking.get(0)))
                     .build();
-            System.out.println("!!!!!!!!!!!!!!!!! Item ID = " + itemDto.getId());
-            System.out.println("!!!!!!!!!!!!!!!!! NEXT = " + itemDto.getNextBooking());
 
-            System.out.println("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
-            System.out.println("Current itemDto = " + itemDto);
+            fullItemDtoList.add(itemDto);
         }
-        System.out.println("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
-        System.out.println("!!!!!!!!!!!!!!!!! ItemDTO list = " + itemDtoList);
 
-        /*itemDtoList.sort(Comparator
+        itemDtoList.sort(Comparator
                 .comparing(o -> {
                     if (o.getLastBooking() == null) {
                         return null;
@@ -231,7 +199,6 @@ public class ItemServiceImpl implements ItemService {
                         return o.getLastBooking().getStart();
                     }
                 }, Comparator.nullsLast(Comparator.reverseOrder())));
-        System.out.println("!!!!!!!!!!!!!!!!! ItemDTO list = " + itemDtoList);
 
         for (ItemDto itemDto : itemDtoList) {
             if (itemDto.getLastBooking() != null && itemDto.getLastBooking().getBookerId() == null) {
@@ -240,26 +207,15 @@ public class ItemServiceImpl implements ItemService {
                         .lastBooking(null)
                         .build();
             }
-            System.out.println("!!!!!!!!!!!!!!!!! ItemDTO ID = " + itemDto.getId());
-            System.out.println("!!!!!!!!!!!!!!!!! ItemDTO LAST = " + itemDto.getLastBooking());
-            System.out.println("!!!!!!!!!!!!!!!!! ItemDTO LastBookingId = " + (itemDto.getLastBooking() != null ? itemDto.getLastBooking().getId() : null));
-            System.out.println("!!!!!!!!!!!!!!!!! ItemDTO LastBookingBookerId = " + (itemDto.getLastBooking() != null ? itemDto.getLastBooking().getBookerId() : null));
-            
-            
+
             if (itemDto.getNextBooking() != null && itemDto.getNextBooking().getBookerId() == null) {
                 itemDto = itemDto
                         .toBuilder()
                         .nextBooking(null)
                         .build();
             }
-
-            System.out.println("!!!!!!!!!!!!!!!!! ItemDTO ID = " + itemDto.getId());
-            System.out.println("!!!!!!!!!!!!!!!!! ItemDTO NEXT = " + itemDto.getNextBooking());
-            System.out.println("!!!!!!!!!!!!!!!!! ItemDTO NextBookingId = " + (itemDto.getNextBooking() != null ? itemDto.getNextBooking().getId() : null));
-            System.out.println("!!!!!!!!!!!!!!!!! ItemDTO NextBookingBookerId = " + (itemDto.getNextBooking() != null ? itemDto.getNextBooking().getBookerId() : null));
-        }*/
-
-        return itemDtoList;
+        }
+        return fullItemDtoList;
     }
 
     @Override
@@ -319,7 +275,7 @@ public class ItemServiceImpl implements ItemService {
 
     private void checkItemOwner(Item item) {
         if (!(item.getOwner().getId() == itemRepository.findById(item.getId()).orElseThrow(() ->
-                new ItemNotFoundException(String.format("Предмет с id = %d не найден.", item.getId())))
+                        new ItemNotFoundException(String.format("Предмет с id = %d не найден.", item.getId())))
                 .getOwner()
                 .getId())) {
             throw new ItemNotFoundException(

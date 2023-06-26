@@ -11,8 +11,9 @@ import ru.practicum.shareit.booking.model.Booking;
 @Service
 public interface BookingMapper {
     BookingDto toDto(Booking booking);
+
     @Named("bookingToBookingShortDto")
-    public static BookingShortDto toShortDto(Booking booking){
+    public static BookingShortDto toShortDto(Booking booking) {
         return BookingShortDto
                 .builder()
                 .id(booking.getId())
@@ -21,8 +22,10 @@ public interface BookingMapper {
                 .itemId(booking.getItem().getId())
                 .bookerId(booking.getBooker().getId())
                 .build();
-    };
+    }
+
     Booking toEntity(BookingDto bookingDto);
+
     Booking toEntity(BookingShortDto bookingShortDto);
 
 }
