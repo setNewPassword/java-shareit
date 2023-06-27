@@ -22,10 +22,7 @@ import ru.practicum.shareit.user.UserService;
 import ru.practicum.shareit.user.model.User;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -34,22 +31,25 @@ import java.util.stream.Collectors;
 public class ItemServiceImpl implements ItemService {
 
     private final ItemRepository itemRepository;
-    private final UserService userService;
     private final UserRepository userRepository;
+    private final UserService userService;
     private final BookingRepository bookingRepository;
     private final CommentRepository commentRepository;
     private final CommentMapper commentMapper;
     private final ItemMapper itemMapper;
 
     @Override
-    public Item add(Item item, long userId) {
-        User user = userService.getById(userId);
+    public ItemDto add(ItemDto itemDto, long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new UserNotFoundException(String
+                        .format("Пользователь с id = %d не найден.", userId)));
+        Item item = itemMapper.toEntity(itemDto);
         item = item.toBuilder()
                 .owner(user)
                 .build();
         item = itemRepository.save(item);
         log.info("Добавлен новый предмет: {}.", item);
-        return item;
+        return itemMapper.toDto(item);
     }
 
     @Transactional
@@ -58,8 +58,7 @@ public class ItemServiceImpl implements ItemService {
         Item item = itemRepository.findById(itemId)
                 .orElseThrow(() -> new ItemNotFoundException(String.format("Предмет с id = %d не найден.", itemId)));
 
-        if ((item.getOwner().getId() != userId)
-                && ((itemDto.getName() != null) || (itemDto.getDescription() != null))) {
+        if (item.getOwner().getId() != userId) {
             throw new UserNotFoundException(String
                     .format("Доступ запрещен! Пользователь с id = %d не является владельцем предмета с id = %d.",
                             userId,
@@ -123,14 +122,6 @@ public class ItemServiceImpl implements ItemService {
                 .nextBooking(nextBooking.isEmpty() ? null : BookingMapper.toShortDto(nextBooking.get(0)))
                 .build();
 
-        if (itemDto.getLastBooking() == null && itemDto.getNextBooking() != null) {
-            itemDto = itemDto
-                    .toBuilder()
-                    .lastBooking(itemDto.getNextBooking())
-                    .nextBooking(null)
-                    .build();
-        }
-
         return itemDto;
     }
 
@@ -145,7 +136,7 @@ public class ItemServiceImpl implements ItemService {
     public List<ItemDto> getItemsByUserId(long userId) {
         log.info(String.format("Запрошен список предметов, принадлежащих пользователю с id = %d.", userId));
         userService.checkUserExists(userId);
-        List<Item> items = itemRepository.findItemsByOwnerId(userId);
+        List<Item> items = itemRepository.findAllByOwnerId(userId);
         if (items.isEmpty()) {
             return Collections.emptyList();
         }
@@ -219,25 +210,17 @@ public class ItemServiceImpl implements ItemService {
     }
 
     @Override
-    public List<Item> getByQuery(String query) {
+    public List<ItemDto> findAllByQuery(String query) {
         if (query == null || query.isBlank()) {
             log.info("Получен пустой запрос для поиска предметов. Был возвращен пустой список.");
             return Collections.emptyList();
         }
         log.info(String.format("Получен запрос для поиска предметов: %s.", query));
-        List<Item> result = new ArrayList<>();
-        query = query.toLowerCase();
-
-        for (Item item : itemRepository.findAll()) {
-            String name = item.getName().toLowerCase();
-            String description = item.getDescription().toLowerCase();
-
-            if (item.getAvailable().equals(true) && (name.contains(query) || description.contains(query))) {
-                result.add(item);
-            }
-        }
-
-        return result;
+        return itemRepository
+                .findAllByQuery(query.toLowerCase())
+                .stream()
+                .map(itemMapper::toDto)
+                .collect(Collectors.toList());
     }
 
     @Transactional
@@ -274,10 +257,10 @@ public class ItemServiceImpl implements ItemService {
     }
 
     private void checkItemOwner(Item item) {
-        if (!(item.getOwner().getId() == itemRepository.findById(item.getId()).orElseThrow(() ->
+        if (!(Objects.equals(item.getOwner().getId(), itemRepository.findById(item.getId()).orElseThrow(() ->
                         new ItemNotFoundException(String.format("Предмет с id = %d не найден.", item.getId())))
                 .getOwner()
-                .getId())) {
+                .getId()))) {
             throw new ItemNotFoundException(
                     String.format("Пользователь с id = %d не является владельцем предмета с id = %d.",
                             item.getOwner().getId(),

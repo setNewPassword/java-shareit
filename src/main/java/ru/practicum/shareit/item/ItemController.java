@@ -6,12 +6,10 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.shareit.item.dto.CommentDto;
 import ru.practicum.shareit.item.dto.ItemDto;
-import ru.practicum.shareit.item.model.Item;
 
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/items")
@@ -25,9 +23,7 @@ public class ItemController {
     @ResponseStatus(HttpStatus.CREATED)
     public ItemDto create(@RequestHeader("X-Sharer-User-Id") Long userId,
                           @RequestBody @Valid ItemDto itemDto) {
-        Item item = itemMapper.toEntity(itemDto);
-        item = itemService.add(item, userId);
-        return itemMapper.toDto(item);
+        return itemService.add(itemDto, userId);
     }
 
     @PatchMapping("/{itemId}")
@@ -50,10 +46,7 @@ public class ItemController {
 
     @GetMapping("/search")
     public List<ItemDto> returnByQuery(@RequestParam("text") String query) {
-        return itemService.getByQuery(query)
-                .stream()
-                .map(itemMapper::toDto)
-                .collect(Collectors.toList());
+        return itemService.findAllByQuery(query);
     }
 
     @PostMapping("/{itemId}/comment")

@@ -1,14 +1,16 @@
 package ru.practicum.shareit.user.dto;
 
-import lombok.Builder;
-import lombok.Value;
+import lombok.*;
 
 import javax.validation.constraints.Email;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 
-@Value
-@Builder
+@Builder(toBuilder = true)
+@Setter
+@Getter
+@AllArgsConstructor
+@NoArgsConstructor
 public class UserDto {
 
     long id;
