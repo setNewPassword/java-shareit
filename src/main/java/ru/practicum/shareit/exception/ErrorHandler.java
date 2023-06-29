@@ -74,7 +74,14 @@ public class ErrorHandler {
         return new ErrorResponse(errorReport.keySet().toString() + errorReport.values());
     }
 
+    @ExceptionHandler
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    protected ErrorResponse handleBadRequestException(BadRequestException exception) {
+        log(exception);
+        return new ErrorResponse("Unknown state: " + exception.getMessage());
+    }
+
     private void log(Exception ex) {
-        log.error("{}: {}.", ex.getClass().getSimpleName(), ex.getMessage());
+        log.error("{}: {}", ex.getClass().getSimpleName(), ex.getMessage());
     }
 }
