@@ -8,6 +8,7 @@ import ru.practicum.shareit.item.dto.CommentDto;
 import ru.practicum.shareit.item.dto.ItemDto;
 
 import javax.validation.Valid;
+import javax.validation.constraints.Min;
 import javax.validation.constraints.NotNull;
 import java.util.List;
 
@@ -17,7 +18,6 @@ import java.util.List;
 public class ItemController {
 
     private final ItemService itemService;
-    private final ItemMapper itemMapper;
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
@@ -34,8 +34,10 @@ public class ItemController {
     }
 
     @GetMapping
-    public List<ItemDto> returnUserItems(@RequestHeader("X-Sharer-User-Id") Long userId) {
-        return itemService.getItemsByUserId(userId);
+    public List<ItemDto> returnUserItems(@NotNull @RequestHeader("X-Sharer-User-Id") Long userId,
+                                         @RequestParam(defaultValue = "0") @Min(0) int from,
+                                         @RequestParam(defaultValue = "10") @Min(1) int size) {
+        return itemService.getAllItems(userId, from, size);
     }
 
     @GetMapping("/{itemId}")
@@ -45,8 +47,10 @@ public class ItemController {
     }
 
     @GetMapping("/search")
-    public List<ItemDto> returnByQuery(@RequestParam("text") String query) {
-        return itemService.findAllByQuery(query);
+    public List<ItemDto> returnByQuery(@RequestParam("text") String query,
+                                       @RequestParam(defaultValue = "0") @Min(0) int from,
+                                       @RequestParam(defaultValue = "10") @Min(1) int size) {
+        return itemService.findAllByQuery(query, from, size);
     }
 
     @PostMapping("/{itemId}/comment")

@@ -3,6 +3,7 @@ package ru.practicum.shareit.booking.impl;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -103,21 +104,25 @@ public class BookingServiceImpl implements BookingService {
 
     @Transactional(readOnly = true)
     @Override
-    public List<BookingDto> getAllByOwner(Long ownerId, State state) {
+    public List<BookingDto> getAllByOwner(Long ownerId, State state, int from, int size) {
         User owner = userRepository.findById(ownerId)
                 .orElseThrow(() -> new UserNotFoundException(String
                         .format("Пользователь с id = %d не найден.", ownerId)));
         List<Booking> bookingsList = new ArrayList<>();
+        PageRequest pageRequest = PageRequest.of(from / size, size, sort);
+
         switch (state) {
             case ALL:
                 bookingsList.addAll(bookingRepository
-                        .findAllByItemOwner(owner, sort));
+                        .findAllByItemOwner(owner, pageRequest)
+                        .toList());
                 log.info(String.format("Запрошены все бронирования пользователя-владельца с id = %d.", ownerId));
                 break;
 
             case FUTURE:
                 bookingsList.addAll(bookingRepository
-                        .findAllByItemOwnerAndStartAfter(owner, LocalDateTime.now(), sort));
+                        .findAllByItemOwnerAndStartAfter(owner, LocalDateTime.now(), pageRequest)
+                        .toList());
                 log.info(String.format("Запрошены будущие бронирования пользователя-владельца с id = %d.", ownerId));
                 break;
 
@@ -126,20 +131,27 @@ public class BookingServiceImpl implements BookingService {
                         .findAllByItemOwnerAndStartBeforeAndEndAfter(owner,
                                 LocalDateTime.now(),
                                 LocalDateTime.now(),
-                                sort));
+                                pageRequest)
+                        .toList());
                 log.info(String.format("Запрошены текущие бронирования пользователя-владельца с id = %d.", ownerId));
                 break;
 
             case PAST:
                 bookingsList.addAll(bookingRepository
-                        .findAllByItemOwnerAndEndBefore(owner, LocalDateTime.now(), sort));
+                        .findAllByItemOwnerAndEndBefore(owner,
+                                LocalDateTime.now(),
+                                pageRequest)
+                        .toList());
                 log.info(String
                         .format("Запрошены завершенные бронирования пользователя-владельца с id = %d.", ownerId));
                 break;
 
             case WAITING:
                 bookingsList.addAll(bookingRepository
-                        .findAllByItemOwnerAndStatusEquals(owner, Status.WAITING, sort));
+                        .findAllByItemOwnerAndStatusEquals(owner,
+                                Status.WAITING,
+                                pageRequest)
+                        .toList());
                 log.info(String
                         .format("Запрошены все бронирования пользователя-владельца с id = %d, ожидающие подтверждения.",
                                 ownerId));
@@ -147,7 +159,10 @@ public class BookingServiceImpl implements BookingService {
 
             case REJECTED:
                 bookingsList.addAll(bookingRepository
-                        .findAllByItemOwnerAndStatusEquals(owner, Status.REJECTED, sort));
+                        .findAllByItemOwnerAndStatusEquals(owner,
+                                Status.REJECTED,
+                                pageRequest)
+                        .toList());
                 log.info(String
                         .format("Запрошены отклоненные бронирования пользователя-владельца с id = %d.", ownerId));
                 break;
@@ -165,21 +180,27 @@ public class BookingServiceImpl implements BookingService {
 
     @Transactional(readOnly = true)
     @Override
-    public List<BookingDto> getAllByUser(Long bookerId, State state) {
+    public List<BookingDto> getAllByUser(Long bookerId, State state, int from, int size) {
         User booker = userRepository.findById(bookerId)
                 .orElseThrow(() -> new UserNotFoundException(String
                         .format("Пользователь с id = %d не найден.", bookerId)));
         List<Booking> bookingDtoList = new ArrayList<>();
+        PageRequest pageRequest = PageRequest.of(from / size, size, sort);
+
         switch (state) {
             case ALL:
                 bookingDtoList.addAll(bookingRepository
-                        .findAllByBooker(booker, sort));
+                        .findAllByBooker(booker, pageRequest)
+                        .toList());
                 log.info(String.format("Запрошены все бронирования пользователя-букера с id = %d.", bookerId));
                 break;
 
             case FUTURE:
                 bookingDtoList.addAll(bookingRepository
-                        .findAllByBookerAndStartAfter(booker, LocalDateTime.now(), sort));
+                        .findAllByBookerAndStartAfter(booker,
+                                LocalDateTime.now(),
+                                pageRequest)
+                        .toList());
                 log.info(String.format("Запрошены будущие бронирования пользователя-букера с id = %d.", bookerId));
                 break;
 
@@ -188,20 +209,27 @@ public class BookingServiceImpl implements BookingService {
                         .findAllByBookerAndStartBeforeAndEndAfter(booker,
                                 LocalDateTime.now(),
                                 LocalDateTime.now(),
-                                sort));
+                                pageRequest)
+                        .toList());
                 log.info(String.format("Запрошены текущие бронирования пользователя-букера с id = %d.", bookerId));
                 break;
 
             case PAST:
                 bookingDtoList.addAll(bookingRepository
-                        .findAllByBookerAndEndBefore(booker, LocalDateTime.now(), sort));
+                        .findAllByBookerAndEndBefore(booker,
+                                LocalDateTime.now(),
+                                pageRequest)
+                        .toList());
                 log.info(String
                         .format("Запрошены завершенные бронирования пользователя-букера с id = %d.", bookerId));
                 break;
 
             case WAITING:
                 bookingDtoList.addAll(bookingRepository
-                        .findAllByBookerAndStatusEquals(booker, Status.WAITING, sort));
+                        .findAllByBookerAndStatusEquals(booker,
+                                Status.WAITING,
+                                pageRequest)
+                        .toList());
                 log.info(String
                         .format("Запрошены все бронирования пользователя-букера с id = %d, ожидающие подтверждения.",
                                 bookerId));
@@ -209,7 +237,10 @@ public class BookingServiceImpl implements BookingService {
 
             case REJECTED:
                 bookingDtoList.addAll(bookingRepository
-                        .findAllByBookerAndStatusEquals(booker, Status.REJECTED, sort));
+                        .findAllByBookerAndStatusEquals(booker,
+                                Status.REJECTED,
+                                pageRequest)
+                        .toList());
                 log.info(String
                         .format("Запрошены отклоненные бронирования пользователя-букера с id = %d.", bookerId));
                 break;

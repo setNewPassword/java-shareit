@@ -3,6 +3,7 @@ package ru.practicum.shareit.item.impl;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -11,12 +12,16 @@ import ru.practicum.shareit.booking.BookingRepository;
 import ru.practicum.shareit.booking.model.Booking;
 import ru.practicum.shareit.booking.model.Status;
 import ru.practicum.shareit.exception.ItemNotFoundException;
+import ru.practicum.shareit.exception.ItemRequestNotFoundException;
 import ru.practicum.shareit.exception.UserNotFoundException;
 import ru.practicum.shareit.item.*;
 import ru.practicum.shareit.item.dto.CommentDto;
 import ru.practicum.shareit.item.dto.ItemDto;
 import ru.practicum.shareit.item.model.Comment;
 import ru.practicum.shareit.item.model.Item;
+import ru.practicum.shareit.request.ItemRequestRepository;
+import ru.practicum.shareit.request.ItemRequestService;
+import ru.practicum.shareit.request.model.ItemRequest;
 import ru.practicum.shareit.user.UserRepository;
 import ru.practicum.shareit.user.UserService;
 import ru.practicum.shareit.user.model.User;
@@ -33,6 +38,7 @@ public class ItemServiceImpl implements ItemService {
     private final ItemRepository itemRepository;
     private final UserRepository userRepository;
     private final UserService userService;
+    private final ItemRequestRepository itemRequestRepository;
     private final BookingRepository bookingRepository;
     private final CommentRepository commentRepository;
     private final CommentMapper commentMapper;
@@ -44,8 +50,11 @@ public class ItemServiceImpl implements ItemService {
                 .orElseThrow(() -> new UserNotFoundException(String
                         .format("Пользователь с id = %d не найден.", userId)));
         Item item = itemMapper.toEntity(itemDto);
+        Optional<ItemRequest> itemRequestOptional = itemRequestRepository.findById(itemDto.getRequestId();
+        ItemRequest itemRequest = itemRequestOptional.orElse(null);
         item = item.toBuilder()
                 .owner(user)
+                .request(itemRequest)
                 .build();
         item = itemRepository.save(item);
         log.info("Добавлен новый предмет: {}.", item);
@@ -76,6 +85,13 @@ public class ItemServiceImpl implements ItemService {
         if (itemDto.getAvailable() != null) {
             item.setAvailable(itemDto.getAvailable());
         }
+
+        if (itemDto.getRequestId() != null) {
+            Optional<ItemRequest> itemRequestOptional = itemRequestRepository.findById(itemDto.getRequestId();
+            ItemRequest itemRequest = itemRequestOptional.orElse(null);
+            item.setRequest(itemRequest);
+        }
+
         item = itemRepository.save(item);
 
         return itemMapper.toDto(item);
@@ -133,10 +149,10 @@ public class ItemServiceImpl implements ItemService {
     }
 
     @Override
-    public List<ItemDto> getItemsByUserId(long userId) {
+    public List<ItemDto> getAllItems(long userId, int from, int size) {
         log.info(String.format("Запрошен список предметов, принадлежащих пользователю с id = %d.", userId));
         userService.checkUserExists(userId);
-        List<Item> items = itemRepository.findAllByOwnerId(userId);
+        List<Item> items = itemRepository.findAllByOwnerId(userId, PageRequest.of(from, size));
         if (items.isEmpty()) {
             return Collections.emptyList();
         }
@@ -182,7 +198,7 @@ public class ItemServiceImpl implements ItemService {
             fullItemDtoList.add(itemDto);
         }
 
-        itemDtoList.sort(Comparator
+        fullItemDtoList.sort(Comparator
                 .comparing(o -> {
                     if (o.getLastBooking() == null) {
                         return null;
@@ -191,7 +207,7 @@ public class ItemServiceImpl implements ItemService {
                     }
                 }, Comparator.nullsLast(Comparator.reverseOrder())));
 
-        for (ItemDto itemDto : itemDtoList) {
+        for (ItemDto itemDto : fullItemDtoList) {
             if (itemDto.getLastBooking() != null && itemDto.getLastBooking().getBookerId() == null) {
                 itemDto = itemDto
                         .toBuilder()
@@ -210,14 +226,14 @@ public class ItemServiceImpl implements ItemService {
     }
 
     @Override
-    public List<ItemDto> findAllByQuery(String query) {
+    public List<ItemDto> findAllByQuery(String query, int from, int size) {
         if (query == null || query.isBlank()) {
             log.info("Получен пустой запрос для поиска предметов. Был возвращен пустой список.");
             return Collections.emptyList();
         }
         log.info(String.format("Получен запрос для поиска предметов: %s.", query));
         return itemRepository
-                .findAllByQuery(query.toLowerCase())
+                .findAllByQuery(query.toLowerCase(), PageRequest.of(from, size))
                 .stream()
                 .map(itemMapper::toDto)
                 .collect(Collectors.toList());

@@ -14,9 +14,9 @@ public interface ItemService {
 
     void deleteById(long itemId);
 
-    List<ItemDto> getItemsByUserId(long userId);
+    List<ItemDto> getAllItems(long userId, int from, int size);
 
-    List<ItemDto> findAllByQuery(String query);
+    List<ItemDto> findAllByQuery(String query, int from, int size);
 
     CommentDto createComment(Long itemId, Long userId, CommentDto commentDto);
 }
