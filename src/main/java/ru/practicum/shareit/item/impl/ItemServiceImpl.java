@@ -20,7 +20,6 @@ import ru.practicum.shareit.item.dto.ItemDto;
 import ru.practicum.shareit.item.model.Comment;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.request.ItemRequestRepository;
-import ru.practicum.shareit.request.ItemRequestService;
 import ru.practicum.shareit.request.model.ItemRequest;
 import ru.practicum.shareit.user.UserRepository;
 import ru.practicum.shareit.user.UserService;
@@ -42,23 +41,27 @@ public class ItemServiceImpl implements ItemService {
     private final BookingRepository bookingRepository;
     private final CommentRepository commentRepository;
     private final CommentMapper commentMapper;
-    private final ItemMapper itemMapper;
 
     @Override
     public ItemDto add(ItemDto itemDto, long userId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new UserNotFoundException(String
                         .format("Пользователь с id = %d не найден.", userId)));
-        Item item = itemMapper.toEntity(itemDto);
-        Optional<ItemRequest> itemRequestOptional = itemRequestRepository.findById(itemDto.getRequestId();
-        ItemRequest itemRequest = itemRequestOptional.orElse(null);
+        Item item = ItemMapper.toEntity(itemDto);
+        if (itemDto.getRequestId() != null) {
+            ItemRequest itemRequest = itemRequestRepository
+                    .findById(itemDto.getRequestId())
+                    .orElseThrow(() -> new ItemRequestNotFoundException(String
+                            .format("Запрос с id = %d не найден.", itemDto.getRequestId())));
+            item.setRequest(itemRequest);
+        }
         item = item.toBuilder()
                 .owner(user)
-                .request(itemRequest)
                 .build();
         item = itemRepository.save(item);
         log.info("Добавлен новый предмет: {}.", item);
-        return itemMapper.toDto(item);
+
+        return ItemMapper.toDto(item);
     }
 
     @Transactional
@@ -87,14 +90,16 @@ public class ItemServiceImpl implements ItemService {
         }
 
         if (itemDto.getRequestId() != null) {
-            Optional<ItemRequest> itemRequestOptional = itemRequestRepository.findById(itemDto.getRequestId();
-            ItemRequest itemRequest = itemRequestOptional.orElse(null);
+            ItemRequest itemRequest = itemRequestRepository
+                    .findById(itemDto.getRequestId())
+                    .orElseThrow(() -> new ItemRequestNotFoundException(String
+                            .format("Запрос с id = %d не найден.", itemDto.getRequestId())));
             item.setRequest(itemRequest);
         }
 
         item = itemRepository.save(item);
 
-        return itemMapper.toDto(item);
+        return ItemMapper.toDto(item);
     }
 
     @Transactional(readOnly = true)
@@ -104,7 +109,7 @@ public class ItemServiceImpl implements ItemService {
 
         Item item = itemRepository.findById(itemId)
                 .orElseThrow(() -> new ItemNotFoundException(String.format("Предмет с id = %d не найден.", itemId)));
-        ItemDto itemDto = itemMapper.toDto(item);
+        ItemDto itemDto = ItemMapper.toDto(item);
 
         itemDto = itemDto
                 .toBuilder()
@@ -150,6 +155,7 @@ public class ItemServiceImpl implements ItemService {
 
     @Override
     public List<ItemDto> getAllItems(long userId, int from, int size) {
+        checkParameters(from, size);
         log.info(String.format("Запрошен список предметов, принадлежащих пользователю с id = %d.", userId));
         userService.checkUserExists(userId);
         List<Item> items = itemRepository.findAllByOwnerId(userId, PageRequest.of(from, size));
@@ -159,7 +165,7 @@ public class ItemServiceImpl implements ItemService {
 
 
         List<ItemDto> itemDtoList = items.stream()
-                .map(itemMapper::toDto)
+                .map(ItemMapper::toDto)
                 .collect(Collectors.toList());
 
         List<ItemDto> fullItemDtoList = new ArrayList<>();
@@ -227,6 +233,7 @@ public class ItemServiceImpl implements ItemService {
 
     @Override
     public List<ItemDto> findAllByQuery(String query, int from, int size) {
+        checkParameters(from, size);
         if (query == null || query.isBlank()) {
             log.info("Получен пустой запрос для поиска предметов. Был возвращен пустой список.");
             return Collections.emptyList();
@@ -235,7 +242,7 @@ public class ItemServiceImpl implements ItemService {
         return itemRepository
                 .findAllByQuery(query.toLowerCase(), PageRequest.of(from, size))
                 .stream()
-                .map(itemMapper::toDto)
+                .map(ItemMapper::toDto)
                 .collect(Collectors.toList());
     }
 
@@ -287,6 +294,12 @@ public class ItemServiceImpl implements ItemService {
     private void checkItemExists(long itemId) {
         if (!itemRepository.existsById(itemId)) {
             throw new ItemNotFoundException(String.format("Предмет с id = %d не найден.", itemId));
+        }
+    }
+
+    private void checkParameters(int from, int size) {
+        if (from < 0 || size < 1) {
+            throw new IllegalArgumentException("Неверные параметры запроса from и (или) size.");
         }
     }
 }

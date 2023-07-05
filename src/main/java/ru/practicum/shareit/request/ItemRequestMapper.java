@@ -9,5 +9,6 @@ import ru.practicum.shareit.request.model.ItemRequest;
 @Service
 public interface ItemRequestMapper {
     ItemRequestDto toDto(ItemRequest itemRequest);
+
     ItemRequest toEntity(ItemRequestDto itemRequestDto);
 }

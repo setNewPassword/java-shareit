@@ -6,7 +6,6 @@ import org.springframework.web.bind.annotation.*;
 import ru.practicum.shareit.request.dto.ItemRequestDto;
 
 import javax.validation.Valid;
-import javax.validation.constraints.Min;
 import java.util.List;
 
 @RequiredArgsConstructor(onConstructor_ = @Autowired)
@@ -23,13 +22,13 @@ public class ItemRequestController {
     }
 
     @GetMapping
-    public List<ItemRequestDto> findALLItemRequestByUser(@RequestHeader("X-Sharer-User-Id") Long userId) {
+    public List<ItemRequestDto> findAllItemRequestByUser(@RequestHeader("X-Sharer-User-Id") Long userId) {
         return itemRequestService.findAllByUser(userId);
     }
 
     @GetMapping("/all")
-    public List<ItemRequestDto> getAllItemRequestByUser(@RequestParam(defaultValue = "0") @Min(0) int from,
-                                                        @RequestParam(defaultValue = "10") @Min(1) int size,
+    public List<ItemRequestDto> getAllItemRequestByUser(@RequestParam(defaultValue = "0") int from,
+                                                        @RequestParam(defaultValue = "10") int size,
                                                         @RequestHeader("X-Sharer-User-Id") Long userId) {
         return itemRequestService.getAllByUser(from, size, userId);
     }

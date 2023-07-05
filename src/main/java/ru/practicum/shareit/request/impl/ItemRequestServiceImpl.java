@@ -3,9 +3,8 @@ package ru.practicum.shareit.request.impl;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
 import org.springframework.data.domain.PageRequest;
-import ru.practicum.shareit.exception.BadRequestException;
+import org.springframework.stereotype.Service;
 import ru.practicum.shareit.exception.ItemRequestNotFoundException;
 import ru.practicum.shareit.exception.UserNotFoundException;
 import ru.practicum.shareit.item.ItemMapper;
@@ -32,7 +31,7 @@ public class ItemRequestServiceImpl implements ItemRequestService {
     private final UserRepository userRepository;
     private final ItemRepository itemRepository;
     private final ItemRequestMapper itemRequestMapper;
-    private final ItemMapper itemMapper;
+
     @Override
     public ItemRequestDto create(Long userId, ItemRequestDto itemRequestDto) {
         User user = userRepository.findById(userId)
@@ -69,6 +68,7 @@ public class ItemRequestServiceImpl implements ItemRequestService {
     @Transactional
     @Override
     public List<ItemRequestDto> getAllByUser(int from, int size, Long userId) {
+        checkParameters(from, size);
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new UserNotFoundException(String
                         .format("Пользователь с id = %d не найден.", userId)));
@@ -101,8 +101,14 @@ public class ItemRequestServiceImpl implements ItemRequestService {
 
     private void setItemsToItemRequestDto(ItemRequestDto itemRequestDto) {
         itemRequestDto.setItems(itemRepository.findAllByRequestId(itemRequestDto.getId())
-                        .stream()
-                        .map(itemMapper::toDto)
-                        .collect(Collectors.toList()));
+                .stream()
+                .map(ItemMapper::toDto)
+                .collect(Collectors.toList()));
+    }
+
+    private void checkParameters(int from, int size) {
+        if (from < 0 || size < 1) {
+            throw new IllegalArgumentException("Неверные параметры запроса from и (или) size.");
+        }
     }
 }

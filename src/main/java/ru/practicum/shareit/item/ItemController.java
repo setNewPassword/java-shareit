@@ -8,7 +8,6 @@ import ru.practicum.shareit.item.dto.CommentDto;
 import ru.practicum.shareit.item.dto.ItemDto;
 
 import javax.validation.Valid;
-import javax.validation.constraints.Min;
 import javax.validation.constraints.NotNull;
 import java.util.List;
 
@@ -35,8 +34,8 @@ public class ItemController {
 
     @GetMapping
     public List<ItemDto> returnUserItems(@NotNull @RequestHeader("X-Sharer-User-Id") Long userId,
-                                         @RequestParam(defaultValue = "0") @Min(0) int from,
-                                         @RequestParam(defaultValue = "10") @Min(1) int size) {
+                                         @RequestParam(defaultValue = "0") int from,
+                                         @RequestParam(defaultValue = "10") int size) {
         return itemService.getAllItems(userId, from, size);
     }
 
@@ -48,8 +47,8 @@ public class ItemController {
 
     @GetMapping("/search")
     public List<ItemDto> returnByQuery(@RequestParam("text") String query,
-                                       @RequestParam(defaultValue = "0") @Min(0) int from,
-                                       @RequestParam(defaultValue = "10") @Min(1) int size) {
+                                       @RequestParam(defaultValue = "0") int from,
+                                       @RequestParam(defaultValue = "10") int size) {
         return itemService.findAllByQuery(query, from, size);
     }
 

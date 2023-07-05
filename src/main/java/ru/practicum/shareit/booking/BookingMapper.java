@@ -13,7 +13,7 @@ public interface BookingMapper {
     BookingDto toDto(Booking booking);
 
     @Named("bookingToBookingShortDto")
-    public static BookingShortDto toShortDto(Booking booking) {
+    static BookingShortDto toShortDto(Booking booking) {
         return BookingShortDto
                 .builder()
                 .id(booking.getId())
@@ -23,8 +23,6 @@ public interface BookingMapper {
                 .bookerId(booking.getBooker().getId())
                 .build();
     }
-
-    ;
 
     Booking toEntity(BookingDto bookingDto);
 

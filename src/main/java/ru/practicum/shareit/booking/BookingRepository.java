@@ -58,12 +58,12 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
                                                     Pageable pageable);
 
     List<Booking> findTop1BookingByItemIdAndStartIsBeforeAndStatusIs(Long itemId,
-                                                                   LocalDateTime end,
-                                                                   Status status,
-                                                                   Sort sort);
+                                                                     LocalDateTime end,
+                                                                     Status status,
+                                                                     Sort sort);
 
     List<Booking> findTop1BookingByItemIdAndStartIsAfterAndStatusIs(Long itemId,
-                                                                  LocalDateTime end,
-                                                                  Status status,
-                                                                  Sort sort);
+                                                                    LocalDateTime end,
+                                                                    Status status,
+                                                                    Sort sort);
 }
