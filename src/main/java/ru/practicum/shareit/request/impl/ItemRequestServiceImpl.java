@@ -2,6 +2,7 @@ package ru.practicum.shareit.request.impl;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.mapstruct.factory.Mappers;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
@@ -30,7 +31,7 @@ public class ItemRequestServiceImpl implements ItemRequestService {
     private final ItemRequestRepository itemRequestRepository;
     private final UserRepository userRepository;
     private final ItemRepository itemRepository;
-    private final ItemRequestMapper itemRequestMapper;
+    private final ItemRequestMapper itemRequestMapper = Mappers.getMapper(ItemRequestMapper.class);
 
     @Override
     public ItemRequestDto create(Long userId, ItemRequestDto itemRequestDto) {
