@@ -12,25 +12,37 @@ import ru.practicum.shareit.user.model.User;
 import java.time.LocalDateTime;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 public class BookingMapperTest {
     private Booking booking;
     private BookingShortDto bookingShortDto;
+    private BookingDto bookingDto;
     private final BookingMapper bookingMapper = Mappers.getMapper(BookingMapper.class);
 
     @BeforeEach
     public void beforeEach() {
-        booking = new Booking(1L,
-                LocalDateTime.parse("2023-07-07T12:30:01.35"),
-                LocalDateTime.parse("2023-07-10T15:35:10.15"),
-                new Item(),
-                new User(),
-                null);
+        booking = Booking
+                .builder()
+                .id(1L)
+                .start(LocalDateTime.parse("2023-07-07T12:30:01.35"))
+                .end(LocalDateTime.parse("2023-07-10T15:35:10.15"))
+                .item(new Item())
+                .booker(new User())
+                .build();
 
-        bookingShortDto = new BookingShortDto();
-        bookingShortDto.setId(1L);
-        bookingShortDto.setStart(LocalDateTime.parse("2023-07-07T12:30:01.35"));
-        bookingShortDto.setEnd(LocalDateTime.parse("2023-07-10T15:35:10.15"));
+        bookingShortDto = BookingShortDto
+                .builder()
+                .id(1L)
+                .start(LocalDateTime.parse("2023-07-07T12:30:01.35"))
+                .end(LocalDateTime.parse("2023-07-10T15:35:10.15"))
+                .build();
+        bookingDto = BookingDto
+                .builder()
+                .id(1L)
+                .start(LocalDateTime.parse("2023-07-07T12:30:01.35"))
+                .end(LocalDateTime.parse("2023-07-10T15:35:10.15"))
+                .build();
     }
 
     @Test
@@ -43,6 +55,13 @@ public class BookingMapperTest {
     }
 
     @Test
+    public void nullToBookingDtoTest() {
+        BookingDto dto = bookingMapper.toDto(null);
+
+        assertNull(dto);
+    }
+
+    @Test
     public void bookingShortDtoTest() {
         BookingShortDto dto = BookingMapper.toShortDto(booking);
 
@@ -51,11 +70,36 @@ public class BookingMapperTest {
         assertEquals(dto.getEnd(), booking.getEnd());
     }
 
+
     @Test
-    public void toBookingTest() {
+    public void shortToBookingTest() {
         Booking newBooking = bookingMapper.toEntity(bookingShortDto);
 
         assertEquals(newBooking.getStart(), bookingShortDto.getStart());
         assertEquals(newBooking.getEnd(), bookingShortDto.getEnd());
+    }
+
+    @Test
+    public void nullShortToBookingTest() {
+        bookingShortDto = null;
+        Booking newBooking = bookingMapper.toEntity(bookingShortDto);
+
+        assertNull(newBooking);
+    }
+
+    @Test
+    public void fullToBookingTest() {
+        Booking newBooking = bookingMapper.toEntity(bookingDto);
+
+        assertEquals(newBooking.getStart(), bookingDto.getStart());
+        assertEquals(newBooking.getEnd(), bookingDto.getEnd());
+    }
+
+    @Test
+    public void nullFullToBookingTest() {
+        bookingDto = null;
+        Booking newBooking = bookingMapper.toEntity(bookingDto);
+
+        assertNull(newBooking);
     }
 }

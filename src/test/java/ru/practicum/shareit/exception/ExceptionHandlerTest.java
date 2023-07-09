@@ -2,6 +2,7 @@ package ru.practicum.shareit.exception;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.web.HttpRequestMethodNotSupportedException;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -9,13 +10,6 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 public class ExceptionHandlerTest {
     private final ErrorHandler handler = new ErrorHandler();
 
-    @Test
-    public void emailAlreadyExistExceptionTest() {
-        EmailAlreadyExistException e = new EmailAlreadyExistException("Email already exists!");
-        ErrorResponse errorResponse = handler.handleEmailExistingException(e);
-        assertNotNull(errorResponse);
-        assertEquals(errorResponse.getError(), e.getMessage());
-    }
 
     @Test
     public void illegalArgumentExceptionTest() {
@@ -40,4 +34,14 @@ public class ExceptionHandlerTest {
         assertNotNull(errorResponse);
         assertEquals(errorResponse.getError(), e.getMessage());
     }
+
+    @Test
+    public void httpRequestMethodNotSupportedExceptionTest() {
+        HttpRequestMethodNotSupportedException e = new HttpRequestMethodNotSupportedException(
+                "Отсутствует реализация метода.");
+        ErrorResponse errorResponse = handler.handleHttpRequestMethodNotSupportedEx(e);
+        assertNotNull(errorResponse);
+        assertEquals(errorResponse.getError(), "Отсутствует реализация метода.");
+    }
+
 }

@@ -18,4 +18,6 @@ public interface ItemRepository extends JpaRepository<Item, Long> {
     List<Item> findAllByQuery(String query, Pageable pageable);
 
     List<Item> findAllByRequestId(Long requestId);
+
+    boolean deleteById(long itemId);
 }

@@ -7,6 +7,7 @@ import ru.practicum.shareit.request.dto.ItemRequestDto;
 import ru.practicum.shareit.request.model.ItemRequest;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 public class ItemRequestMapperTest {
     private ItemRequest itemRequest;
@@ -38,10 +39,24 @@ public class ItemRequestMapperTest {
     }
 
     @Test
+    public void nullToItemRequestDtoTest() {
+        ItemRequestDto dto = itemRequestMapper.toDto(null);
+
+        assertNull(dto);
+    }
+
+    @Test
     public void toItemRequestTest() {
         ItemRequest newItemRequest = itemRequestMapper.toEntity(itemRequestDto);
 
         assertEquals(newItemRequest.getId(), itemRequestDto.getId());
         assertEquals(newItemRequest.getDescription(), itemRequestDto.getDescription());
+    }
+
+    @Test
+    public void nullToItemRequestTest() {
+        ItemRequest newItemRequest = itemRequestMapper.toEntity(null);
+
+        assertNull(newItemRequest);
     }
 }

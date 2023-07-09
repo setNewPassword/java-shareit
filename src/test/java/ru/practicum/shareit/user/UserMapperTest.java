@@ -7,6 +7,7 @@ import ru.practicum.shareit.user.dto.UserDto;
 import ru.practicum.shareit.user.model.User;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 public class UserMapperTest {
     private User homerSimpson;
@@ -32,6 +33,13 @@ public class UserMapperTest {
     }
 
     @Test
+    public void nullToUserDtoTest() {
+        UserDto homerDto = userMapper.toDto(null);
+
+        assertNull(homerDto);
+    }
+
+    @Test
     public void toUserModelTest() {
         UserDto homerDto = UserDto
                 .builder()
@@ -44,6 +52,13 @@ public class UserMapperTest {
         assertEquals(homerDto.getId(), newUser.getId());
         assertEquals(homerDto.getName(), newUser.getName());
         assertEquals(homerDto.getEmail(), newUser.getEmail());
+    }
+
+    @Test
+    public void nullToUserModelTest() {
+        User newUser = userMapper.toEntity(null);
+
+        assertNull(newUser);
     }
 
 }

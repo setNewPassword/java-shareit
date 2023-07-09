@@ -12,7 +12,7 @@ public interface ItemService {
 
     ItemDto getById(long itemId, long userId);
 
-    void deleteById(long itemId);
+    boolean deleteById(long itemId);
 
     List<ItemDto> getAllItems(long userId, int from, int size);
 

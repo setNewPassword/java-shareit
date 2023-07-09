@@ -15,6 +15,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import ru.practicum.shareit.booking.dto.BookingDto;
 import ru.practicum.shareit.booking.dto.BookingShortDto;
 import ru.practicum.shareit.booking.model.State;
+import ru.practicum.shareit.exception.BadRequestException;
 import ru.practicum.shareit.item.model.Item;
 
 import java.nio.charset.StandardCharsets;
@@ -138,6 +139,25 @@ public class BookingControllerTest {
                         .param("size", "10"))
                 .andExpect(status().isOk())
                 .andExpect(content().json("[]"));
+
+        verify(bookingService, times(1))
+                .getAllByOwner(any(Long.class), any(State.class), any(Integer.class), any(Integer.class));
+    }
+
+    @Test
+    @SneakyThrows
+    public void getAllByOwnerUnknownStateTest() {
+        when(bookingService.getAllByOwner(any(Long.class), any(State.class), any(Integer.class),
+                any(Integer.class)))
+                .thenThrow(new BadRequestException(State.UNSUPPORTED_STATUS.name()));
+
+        mvc.perform(get("/bookings/owner")
+                        .header("X-Sharer-User-Id", 1)
+                        .param("from", "0")
+                        .param("size", "10")
+                        .param("state", "foo"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.error", is("Unknown state: UNSUPPORTED_STATUS")));
 
         verify(bookingService, times(1))
                 .getAllByOwner(any(Long.class), any(State.class), any(Integer.class), any(Integer.class));

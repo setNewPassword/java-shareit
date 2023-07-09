@@ -15,6 +15,7 @@ import ru.practicum.shareit.booking.impl.BookingServiceImpl;
 import ru.practicum.shareit.booking.model.Booking;
 import ru.practicum.shareit.booking.model.State;
 import ru.practicum.shareit.booking.model.Status;
+import ru.practicum.shareit.exception.BookingNotFoundException;
 import ru.practicum.shareit.exception.ItemNotFoundException;
 import ru.practicum.shareit.exception.UserNotFoundException;
 import ru.practicum.shareit.item.ItemRepository;
@@ -70,7 +71,7 @@ public class BookingServiceTest {
     }
 
     @Test
-    public void createBookingTest() {
+    public void successCreateBookingTest() {
 
         when(userRepository.findById(any(Long.class)))
                 .thenReturn(Optional.ofNullable(owner));
@@ -89,6 +90,60 @@ public class BookingServiceTest {
     }
 
     @Test
+    public void failCreateBookingUserNotFoundTest() {
+
+        when(userRepository.findById(any(Long.class)))
+                .thenReturn(Optional.empty());
+
+
+        final Throwable exception = assertThrows(UserNotFoundException.class, () ->
+                bookingService.create(bookingShortDto, 1L));
+
+
+        assertNotNull(exception);
+        assertEquals(exception.getClass(), UserNotFoundException.class);
+        assertEquals(exception.getMessage(), "Пользователь с id = 1 не найден.");
+    }
+
+    @Test
+    public void failCreateBookingBookerIsOwnerTest() {
+        item.setOwner(user);
+
+        when(userRepository.findById(any(Long.class)))
+                .thenReturn(Optional.ofNullable(user));
+        when(itemRepository.findById(any(Long.class)))
+                .thenReturn(Optional.ofNullable(item));
+
+
+        final Throwable exception = assertThrows(BookingNotFoundException.class, () ->
+                bookingService.create(bookingShortDto, 1L));
+
+
+        assertNotNull(exception);
+        assertEquals(exception.getClass(), BookingNotFoundException.class);
+        assertEquals(exception.getMessage(), "Пользователь с id = 1 не может забронировать свой же предмет.");
+    }
+
+    @Test
+    public void failCreateBookingItemIsUnavailableTest() {
+        item.setAvailable(false);
+
+        when(userRepository.findById(any(Long.class)))
+                .thenReturn(Optional.ofNullable(user));
+        when(itemRepository.findById(any(Long.class)))
+                .thenReturn(Optional.ofNullable(item));
+
+
+        final Throwable exception = assertThrows(IllegalArgumentException.class, () ->
+                bookingService.create(bookingShortDto, 1L));
+
+
+        assertNotNull(exception);
+        assertEquals(exception.getClass(), IllegalArgumentException.class);
+        assertEquals(exception.getMessage(), "Предмет с id = 1 не доступен для бронирования.");
+    }
+
+    @Test
     public void approveBookingTest() {
         booking.setStatus(Status.WAITING);
 
@@ -103,6 +158,56 @@ public class BookingServiceTest {
         assertNotNull(result);
         assertEquals(1L, result.getId());
         assertEquals(Status.APPROVED, result.getStatus());
+    }
+
+    @Test
+    public void approveBookingNotFoundTest() {
+        booking.setStatus(Status.WAITING);
+
+        when(bookingRepository.findById(any(Long.class)))
+                .thenReturn(Optional.empty());
+
+        final Throwable exception = assertThrows(BookingNotFoundException.class, () ->
+                bookingService.approve(1L, 2L, true));
+
+
+        assertNotNull(exception);
+        assertEquals(exception.getClass(), BookingNotFoundException.class);
+        assertEquals(exception.getMessage(), "Бронирование с id = 1 не найдено.");
+    }
+
+    @Test
+    public void approveBookingAlreadyApprovedTest() {
+        booking.setStatus(Status.APPROVED);
+
+        when(bookingRepository.findById(any(Long.class)))
+                .thenReturn(Optional.ofNullable(booking));
+
+        final Throwable exception = assertThrows(IllegalArgumentException.class, () ->
+                bookingService.approve(1L, 2L, true));
+
+
+        assertNotNull(exception);
+        assertEquals(exception.getClass(), IllegalArgumentException.class);
+        assertEquals(exception.getMessage(), "Бронирование не нуждается в подтверждении.");
+    }
+
+    @Test
+    public void approveBookingRejectedTest() {
+        booking.setStatus(Status.WAITING);
+
+        when(bookingRepository.findById(any(Long.class)))
+                .thenReturn(Optional.ofNullable(booking));
+
+        when(bookingRepository.save(any(Booking.class)))
+                .thenReturn(booking);
+
+        BookingDto result = bookingService.approve(1L, 2L, false);
+
+
+        assertNotNull(result);
+        assertEquals(1L, result.getId());
+        assertEquals(Status.REJECTED, result.getStatus());
     }
 
 

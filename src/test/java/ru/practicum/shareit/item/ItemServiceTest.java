@@ -166,6 +166,28 @@ public class ItemServiceTest {
     }
 
     @Test
+    public void updateAccessDeniedTest() {
+        user.setId(9L);
+        itemDto = itemDto.toBuilder()
+                .name("Wood planer")
+                .build();
+        item = item
+                .toBuilder()
+                .name("Wood planer")
+                .owner(user)
+                .build();
+
+        when(itemRepository.findById(any(Long.class)))
+                .thenReturn(Optional.ofNullable(item));
+
+        Exception e = assertThrows(UserNotFoundException.class,
+                () -> itemService.update(itemDto, 7L, 5L));
+        assertNotNull(e);
+        assertEquals("Доступ запрещен! Пользователь с id = 7 не является владельцем предмета с id = 5.",
+                e.getMessage());
+    }
+
+    @Test
     public void findItemByIdTest() {
         booking.setStart(LocalDateTime.now());
         booking.setEnd(null);
@@ -216,6 +238,25 @@ public class ItemServiceTest {
     }
 
     @Test
+    public void findAllByEmptyQueryTest() {
+
+        List<ItemDto> result = itemService.findAllByQuery(null, 0, 10);
+
+        assertNotNull(result);
+        assertEquals(result, Collections.emptyList());
+    }
+
+    @Test
+    public void findAllByQueryWrongParametersTest() {
+
+        IllegalArgumentException result = assertThrows(IllegalArgumentException.class,
+                () -> itemService.findAllByQuery("Foo", -1, 0));
+
+        assertNotNull(result);
+        assertEquals("Неверные параметры запроса from и (или) size.", result.getMessage());
+    }
+
+    @Test
     public void createCommentExceptionTest() {
         when(itemRepository.findById(any(Long.class)))
                 .thenReturn(Optional.ofNullable(item));
@@ -233,4 +274,30 @@ public class ItemServiceTest {
 
         assertNotNull(result);
     }
+
+    @Test
+    public void deleteByIdTest() {
+        when(itemRepository.existsById(anyLong()))
+                .thenReturn(true);
+
+        when(itemRepository.deleteById(anyLong()))
+                .thenReturn(true);
+
+        boolean result = itemService.deleteById(1L);
+
+        assertTrue(result);
+    }
+
+    @Test
+    public void deleteByIdItemNotExistsTest() {
+        when(itemRepository.existsById(anyLong()))
+                .thenReturn(false);
+
+        ItemNotFoundException result = assertThrows(ItemNotFoundException.class,
+                () -> itemService.deleteById(1L));
+
+        assertNotNull(result);
+        assertEquals("Предмет с id = 1 не найден.", result.getMessage());
+    }
+
 }

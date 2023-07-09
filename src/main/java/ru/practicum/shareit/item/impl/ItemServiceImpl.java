@@ -27,7 +27,10 @@ import ru.practicum.shareit.user.UserService;
 import ru.practicum.shareit.user.model.User;
 
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
@@ -148,10 +151,11 @@ public class ItemServiceImpl implements ItemService {
     }
 
     @Override
-    public void deleteById(long itemId) {
+    public boolean deleteById(long itemId) {
         checkItemExists(itemId);
-        itemRepository.deleteById(itemId);
+        boolean result = itemRepository.deleteById(itemId);
         log.info(String.format("Удален предмет с id = %d.", itemId));
+        return result;
     }
 
     @Override
@@ -280,17 +284,6 @@ public class ItemServiceImpl implements ItemService {
         return CommentMapper.toDto(comment);
     }
 
-    private void checkItemOwner(Item item) {
-        if (!(Objects.equals(item.getOwner().getId(), itemRepository.findById(item.getId()).orElseThrow(() ->
-                        new ItemNotFoundException(String.format("Предмет с id = %d не найден.", item.getId())))
-                .getOwner()
-                .getId()))) {
-            throw new ItemNotFoundException(
-                    String.format("Пользователь с id = %d не является владельцем предмета с id = %d.",
-                            item.getOwner().getId(),
-                            item.getId()));
-        }
-    }
 
     private void checkItemExists(long itemId) {
         if (!itemRepository.existsById(itemId)) {

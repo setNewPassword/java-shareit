@@ -7,6 +7,7 @@ import org.mapstruct.factory.Mappers;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import ru.practicum.shareit.exception.UserNotFoundException;
 import ru.practicum.shareit.user.dto.UserDto;
 import ru.practicum.shareit.user.impl.UserServiceImpl;
 import ru.practicum.shareit.user.model.User;
@@ -14,8 +15,7 @@ import ru.practicum.shareit.user.model.User;
 import java.util.List;
 import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
@@ -75,6 +75,20 @@ public class UserServiceTest {
     }
 
     @Test
+    void updateUserNotFoundTest() {
+        homerSimpson.setName("Bart");
+        UserDto inputDto = userMapper.toDto(homerSimpson);
+
+        when(userRepository.findById(any(Long.class)))
+                .thenReturn(Optional.empty());
+        UserNotFoundException e = assertThrows(UserNotFoundException.class,
+                () -> userService.update(inputDto, 1L));
+
+        assertNotNull(e);
+        assertEquals("Пользователь с id = 1 не найден.", e.getMessage());
+    }
+
+    @Test
     void findByIdTest() {
         when(userRepository.findById(anyLong()))
                 .thenReturn(Optional.ofNullable(homerSimpson));
@@ -107,6 +121,17 @@ public class UserServiceTest {
         assertEquals(homerSimpson.getId(), users.get(0).getId());
 
         verify(userRepository, times(1)).findAll();
+    }
+
+    @Test
+    void getByIdUserNotFoundTest() {
+        when(userRepository.findById(anyLong()))
+                .thenReturn(Optional.empty());
+        UserNotFoundException e = assertThrows(UserNotFoundException.class,
+                () -> userService.getById(1L));
+
+        assertNotNull(e);
+        assertEquals("Пользователь с id = 1 не найден.", e.getMessage());
     }
 
 }

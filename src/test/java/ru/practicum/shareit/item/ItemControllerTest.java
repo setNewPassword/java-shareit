@@ -134,6 +134,7 @@ public class ItemControllerTest {
                 .update(any(ItemDto.class), any(Long.class), any(Long.class));
     }
 
+
     @Test
     @SneakyThrows
     public void getItemTest() {
@@ -183,4 +184,18 @@ public class ItemControllerTest {
         verify(itemService, times(1))
                 .findAllByQuery(any(String.class), any(Integer.class), any(Integer.class));
     }
+
+    @Test
+    @SneakyThrows
+    public void missingHeaderTest() {
+        when(itemService.getById(any(Long.class), any(Long.class)))
+                .thenReturn(itemDto);
+
+        mvc.perform(get("/items/1"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.error", is("Параметр UserID не указан в заголовке HTTP-запроса.")));
+
+        verifyNoInteractions(itemService);
+    }
+
 }

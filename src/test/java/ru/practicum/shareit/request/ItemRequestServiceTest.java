@@ -8,6 +8,8 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
+import ru.practicum.shareit.exception.ItemRequestNotFoundException;
+import ru.practicum.shareit.exception.UserNotFoundException;
 import ru.practicum.shareit.item.ItemRepository;
 import ru.practicum.shareit.request.dto.ItemRequestDto;
 import ru.practicum.shareit.request.impl.ItemRequestServiceImpl;
@@ -22,6 +24,7 @@ import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -76,7 +79,7 @@ public class ItemRequestServiceTest {
     }
 
     @Test
-    void getAllByUserTest() {
+    void findAllByUserTest() {
         when(userRepository.existsById(any()))
                 .thenReturn(true);
 
@@ -91,7 +94,7 @@ public class ItemRequestServiceTest {
     }
 
     @Test
-    void getAllTest() {
+    void getAllByUserTest() {
         when(userRepository.findById(any(Long.class)))
                 .thenReturn(Optional.ofNullable(homerSimpson));
 
@@ -102,6 +105,40 @@ public class ItemRequestServiceTest {
 
         assertNotNull(result);
         assertTrue(result.isEmpty());
+    }
+
+    @Test
+    void getAllByUserWrongParametersTest() {
+        IllegalArgumentException result = assertThrows(IllegalArgumentException.class,
+                () -> itemRequestService.getAllByUser(-1, 0, 1L));
+
+        assertNotNull(result);
+        assertEquals("Неверные параметры запроса from и (или) size.", result.getMessage());
+    }
+
+    @Test
+    void getAllByUserNotExistsTest() {
+        when(userRepository.existsById(anyLong()))
+                .thenReturn(false);
+
+        UserNotFoundException e = assertThrows(UserNotFoundException.class,
+                () -> itemRequestService.getById(1L, 1L));
+
+        assertNotNull(e);
+        assertEquals("Пользователь с id = 1 не найден.", e.getMessage());
+    }
+
+    @Test
+    void getAllByUserRequestNotFoundTest() {
+        when(userRepository.existsById(anyLong()))
+                .thenReturn(true);
+        when(itemRequestRepository.findById(anyLong()))
+                .thenReturn(Optional.empty());
+        ItemRequestNotFoundException e = assertThrows(ItemRequestNotFoundException.class,
+                () -> itemRequestService.getById(1L, 1L));
+
+        assertNotNull(e);
+        assertEquals("Запрос с id = 1 не найден.", e.getMessage());
     }
 
     @Test
