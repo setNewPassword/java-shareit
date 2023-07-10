@@ -34,6 +34,12 @@ public class BookingController {
                                           @RequestParam(defaultValue = "ALL") State state,
                                           @RequestParam(defaultValue = "0") int from,
                                           @RequestParam(defaultValue = "10") int size) {
+        if (from < 0) {
+            throw new IllegalArgumentException("Параметр from должен быть не меньше нуля.");
+        }
+        if (size < 1) {
+            throw new IllegalArgumentException("Параметр size должен быть больше нуля.");
+        }
         return bookingService.getAllByOwner(ownerId, state, from, size);
     }
 
@@ -42,6 +48,12 @@ public class BookingController {
                                          @RequestParam(defaultValue = "ALL") State state,
                                          @RequestParam(defaultValue = "0") int from,
                                          @RequestParam(defaultValue = "10") int size) {
+        if (from < 0) {
+            throw new IllegalArgumentException("Параметр from должен быть не меньше нуля.");
+        }
+        if (size < 1) {
+            throw new IllegalArgumentException("Параметр size должен быть больше нуля.");
+        }
         return bookingService.getAllByUser(userId, state, from, size);
     }
 

@@ -26,6 +26,7 @@ import static org.hamcrest.Matchers.is;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @WebMvcTest(BookingController.class)
@@ -128,6 +129,38 @@ public class BookingControllerTest {
 
     @Test
     @SneakyThrows
+    public void getAllByUserFailByFromTest() {
+        mvc.perform(get("/bookings")
+                        .header("X-Sharer-User-Id", 1)
+                        .param("from", "-1")
+                        .param("size", "10")
+                        .param("state", "ALL"))
+                .andDo(print())
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.error", is("Параметр from должен быть не меньше нуля.")));
+
+        verify(bookingService, never())
+                .getAllByUser(any(Long.class), any(State.class), any(Integer.class), any(Integer.class));
+    }
+
+    @Test
+    @SneakyThrows
+    public void getAllByUserFailBySizeTest() {
+        mvc.perform(get("/bookings")
+                        .header("X-Sharer-User-Id", 1)
+                        .param("from", "0")
+                        .param("size", "0")
+                        .param("state", "ALL"))
+                .andDo(print())
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.error", is("Параметр size должен быть больше нуля.")));
+
+        verify(bookingService, never())
+                .getAllByUser(any(Long.class), any(State.class), any(Integer.class), any(Integer.class));
+    }
+
+    @Test
+    @SneakyThrows
     public void getAllByOwnerTest() {
         when(bookingService.getAllByOwner(any(Long.class), any(State.class), any(Integer.class),
                 any(Integer.class)))
@@ -141,6 +174,36 @@ public class BookingControllerTest {
                 .andExpect(content().json("[]"));
 
         verify(bookingService, times(1))
+                .getAllByOwner(any(Long.class), any(State.class), any(Integer.class), any(Integer.class));
+    }
+
+    @Test
+    @SneakyThrows
+    public void getAllByOwnerFailByFromTest() {
+        mvc.perform(get("/bookings/owner")
+                        .header("X-Sharer-User-Id", 1)
+                        .param("from", "-1")
+                        .param("size", "10"))
+                .andDo(print())
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.error", is("Параметр from должен быть не меньше нуля.")));
+
+        verify(bookingService, never())
+                .getAllByOwner(any(Long.class), any(State.class), any(Integer.class), any(Integer.class));
+    }
+
+    @Test
+    @SneakyThrows
+    public void getAllByOwnerFailBySizeTest() {
+        mvc.perform(get("/bookings/owner")
+                        .header("X-Sharer-User-Id", 1)
+                        .param("from", "0")
+                        .param("size", "0"))
+                .andDo(print())
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.error", is("Параметр size должен быть больше нуля.")));
+
+        verify(bookingService, never())
                 .getAllByOwner(any(Long.class), any(State.class), any(Integer.class), any(Integer.class));
     }
 

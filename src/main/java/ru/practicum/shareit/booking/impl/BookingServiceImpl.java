@@ -106,7 +106,6 @@ public class BookingServiceImpl implements BookingService {
     @Transactional(readOnly = true)
     @Override
     public List<BookingDto> getAllByOwner(Long ownerId, State state, int from, int size) {
-        checkParameters(from, size);
         User owner = userRepository.findById(ownerId)
                 .orElseThrow(() -> new UserNotFoundException(String
                         .format("Пользователь с id = %d не найден.", ownerId)));
@@ -183,7 +182,6 @@ public class BookingServiceImpl implements BookingService {
     @Transactional(readOnly = true)
     @Override
     public List<BookingDto> getAllByUser(Long bookerId, State state, int from, int size) {
-        checkParameters(from, size);
         User booker = userRepository.findById(bookerId)
                 .orElseThrow(() -> new UserNotFoundException(String
                         .format("Пользователь с id = %d не найден.", bookerId)));
@@ -273,9 +271,4 @@ public class BookingServiceImpl implements BookingService {
         return bookingMapper.toDto(booking);
     }
 
-    private void checkParameters(int from, int size) {
-        if (from < 0 || size < 1) {
-            throw new IllegalArgumentException("Неверные параметры запроса from и (или) size.");
-        }
-    }
 }

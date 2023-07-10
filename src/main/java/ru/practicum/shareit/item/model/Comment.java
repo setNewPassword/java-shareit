@@ -1,6 +1,7 @@
 package ru.practicum.shareit.item.model;
 
 import lombok.*;
+import org.hibernate.annotations.UpdateTimestamp;
 import ru.practicum.shareit.user.model.User;
 
 import javax.persistence.*;
@@ -20,7 +21,7 @@ public class Comment {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(length = 255, nullable = false)
+    @Column(nullable = false)
     private String text;
 
     @ManyToOne
@@ -31,6 +32,7 @@ public class Comment {
     @JoinColumn(name = "author_id", referencedColumnName = "id", nullable = false)
     private User author;
 
+    @UpdateTimestamp
     private LocalDateTime created;
 
 }

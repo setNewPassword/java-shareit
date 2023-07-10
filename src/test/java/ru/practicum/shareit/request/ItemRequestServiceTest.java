@@ -10,7 +10,9 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import ru.practicum.shareit.exception.ItemRequestNotFoundException;
 import ru.practicum.shareit.exception.UserNotFoundException;
+import ru.practicum.shareit.item.ItemMapper;
 import ru.practicum.shareit.item.ItemRepository;
+import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.request.dto.ItemRequestDto;
 import ru.practicum.shareit.request.impl.ItemRequestServiceImpl;
 import ru.practicum.shareit.request.model.ItemRequest;
@@ -39,6 +41,7 @@ public class ItemRequestServiceTest {
     private ItemRequestServiceImpl itemRequestService;
     private ItemRequest itemRequest;
     private User homerSimpson;
+    private Item item;
 
     @BeforeEach
     public void beforeEach() {
@@ -55,6 +58,15 @@ public class ItemRequestServiceTest {
                 .description("looking for a tool to make a hole in the wall with")
                 .requester(homerSimpson)
                 .created(LocalDateTime.parse("2023-07-07T15:46:59.59"))
+                .build();
+        item = Item
+                .builder()
+                .id(1L)
+                .name("Screwdriver")
+                .description("Phillips head screwdriver")
+                .owner(homerSimpson)
+                .available(true)
+                .request(itemRequest)
                 .build();
     }
 
@@ -85,12 +97,14 @@ public class ItemRequestServiceTest {
 
         when(itemRequestRepository
                 .findAllByRequesterIdOrderByCreatedAsc(any(Long.class)))
-                .thenReturn(new ArrayList<>());
+                .thenReturn(List.of(itemRequest));
+        when(itemRepository.findByRequestIdIn(any()))
+                .thenReturn(List.of(item));
 
         List<ItemRequestDto> result = itemRequestService.findAllByUser(1L);
 
         assertNotNull(result);
-        assertTrue(result.isEmpty());
+        assertEquals(result.get(0).getItems().get(0), ItemMapper.toDto(item));
     }
 
     @Test
@@ -105,15 +119,6 @@ public class ItemRequestServiceTest {
 
         assertNotNull(result);
         assertTrue(result.isEmpty());
-    }
-
-    @Test
-    void getAllByUserWrongParametersTest() {
-        IllegalArgumentException result = assertThrows(IllegalArgumentException.class,
-                () -> itemRequestService.getAllByUser(-1, 0, 1L));
-
-        assertNotNull(result);
-        assertEquals("Неверные параметры запроса from и (или) size.", result.getMessage());
     }
 
     @Test

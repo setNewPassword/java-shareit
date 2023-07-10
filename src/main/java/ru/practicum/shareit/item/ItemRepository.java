@@ -20,4 +20,6 @@ public interface ItemRepository extends JpaRepository<Item, Long> {
     List<Item> findAllByRequestId(Long requestId);
 
     boolean deleteById(long itemId);
+
+    List<Item> findByRequestIdIn(List<Long> requestIds);
 }

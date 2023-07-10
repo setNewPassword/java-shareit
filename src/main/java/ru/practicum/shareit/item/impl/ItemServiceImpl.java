@@ -273,7 +273,6 @@ public class ItemServiceImpl implements ItemService {
                 .toBuilder()
                 .item(item)
                 .author(user)
-                .created(LocalDateTime.now())
                 .build();
         comment = commentRepository.save(comment);
         log.info(String.format("Пользователь с id = %d оставил комментарий с id = %d к предмету с id = %d.",

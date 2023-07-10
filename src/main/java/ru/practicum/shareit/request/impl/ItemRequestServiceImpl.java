@@ -10,6 +10,7 @@ import ru.practicum.shareit.exception.ItemRequestNotFoundException;
 import ru.practicum.shareit.exception.UserNotFoundException;
 import ru.practicum.shareit.item.ItemMapper;
 import ru.practicum.shareit.item.ItemRepository;
+import ru.practicum.shareit.item.dto.ItemDto;
 import ru.practicum.shareit.request.ItemRequestMapper;
 import ru.practicum.shareit.request.ItemRequestRepository;
 import ru.practicum.shareit.request.ItemRequestService;
@@ -19,8 +20,10 @@ import ru.practicum.shareit.user.UserRepository;
 import ru.practicum.shareit.user.model.User;
 
 import javax.transaction.Transactional;
-import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
@@ -41,7 +44,6 @@ public class ItemRequestServiceImpl implements ItemRequestService {
         ItemRequest itemRequest = itemRequestMapper.toEntity(itemRequestDto);
         itemRequest = itemRequest
                 .toBuilder()
-                .created(LocalDateTime.now())
                 .requester(user)
                 .build();
         itemRequest = itemRequestRepository.save(itemRequest);
@@ -60,7 +62,7 @@ public class ItemRequestServiceImpl implements ItemRequestService {
                 .stream()
                 .map(itemRequestMapper::toDto)
                 .collect(Collectors.toList());
-        itemRequestDtos.forEach(this::setItemsToItemRequestDto);
+        addItemsToRequests(itemRequestDtos);
         log.info("Возвращен список запросов пользователя с id = {}.", userId);
 
         return itemRequestDtos;
@@ -69,7 +71,6 @@ public class ItemRequestServiceImpl implements ItemRequestService {
     @Transactional
     @Override
     public List<ItemRequestDto> getAllByUser(int from, int size, Long userId) {
-        checkParameters(from, size);
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new UserNotFoundException(String
                         .format("Пользователь с id = %d не найден.", userId)));
@@ -78,7 +79,7 @@ public class ItemRequestServiceImpl implements ItemRequestService {
                 .stream()
                 .map(itemRequestMapper::toDto)
                 .collect(Collectors.toList());
-        itemRequestDtos.forEach(this::setItemsToItemRequestDto);
+        addItemsToRequests(itemRequestDtos);
         log.info("Возвращен постраничный список запросов пользователя с id = {}.", userId);
 
         return itemRequestDtos;
@@ -94,22 +95,29 @@ public class ItemRequestServiceImpl implements ItemRequestService {
                 .orElseThrow(() -> new ItemRequestNotFoundException(String
                         .format("Запрос с id = %d не найден.", requestId)));
         ItemRequestDto itemRequestDto = itemRequestMapper.toDto(itemRequest);
-        setItemsToItemRequestDto(itemRequestDto);
+        itemRequestDto.addAllItems(itemRepository.findAllByRequestId(itemRequestDto.getId())
+                .stream()
+                .map(ItemMapper::toDto)
+                .collect(Collectors.toList()));
         log.info("Возвращен запрос с id = {}.", requestId);
 
         return itemRequestDto;
     }
 
-    private void setItemsToItemRequestDto(ItemRequestDto itemRequestDto) {
-        itemRequestDto.setItems(itemRepository.findAllByRequestId(itemRequestDto.getId())
+    private void addItemsToRequests(List<ItemRequestDto> itemRequestDtos) {
+        List<Long> requestIds = itemRequestDtos.stream().map(ItemRequestDto::getId).collect(Collectors.toList());
+        List<ItemDto> itemDtos = itemRepository.findByRequestIdIn(requestIds)
                 .stream()
                 .map(ItemMapper::toDto)
-                .collect(Collectors.toList()));
-    }
+                .collect(Collectors.toList());
 
-    private void checkParameters(int from, int size) {
-        if (from < 0 || size < 1) {
-            throw new IllegalArgumentException("Неверные параметры запроса from и (или) size.");
+        if (!itemDtos.isEmpty()) {
+            Map<Long, ItemRequestDto> requestsDtosMap = new HashMap<>();
+            Map<Long, List<ItemDto>> itemsDtosMap = new HashMap<>();
+
+            itemDtos.forEach(itemDto -> itemsDtosMap.computeIfAbsent(itemDto.getRequestId(), key -> new ArrayList<>()).add(itemDto));
+            itemRequestDtos.forEach(request -> requestsDtosMap.put(request.getId(), request));
+            itemsDtosMap.forEach((key, value) -> requestsDtosMap.get(key).addAllItems(value));
         }
     }
 }

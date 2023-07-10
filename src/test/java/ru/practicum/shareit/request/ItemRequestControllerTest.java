@@ -42,6 +42,7 @@ public class ItemRequestControllerTest {
         itemRequest = ItemRequestDto
                 .builder()
                 .id(1L)
+                .description("Трям!")
                 .build();
     }
 
@@ -120,10 +121,11 @@ public class ItemRequestControllerTest {
                 .getAllByUser(any(Integer.class), any(Integer.class), any(Long.class));
     }
 
+
     @Test
     @SneakyThrows
     public void getItemRequestByIdTest() {
-        itemRequest.setItems(Collections.emptyList());
+        itemRequest.addAllItems(Collections.emptyList());
         when(itemRequestService.getById(any(Long.class), any(Long.class)))
                 .thenReturn(itemRequest);
 

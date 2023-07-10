@@ -7,9 +7,9 @@ import ru.practicum.shareit.item.dto.ItemDto;
 
 import javax.validation.constraints.NotBlank;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
-//@Value
 @Builder(toBuilder = true)
 @Setter
 @Getter
@@ -20,6 +20,10 @@ public class ItemRequestDto {
 
     LocalDateTime created;
 
-    List<ItemDto> items;
+    final List<ItemDto> items = new ArrayList<>();
+
+    public void addAllItems(List<ItemDto> itemDtoList) {
+        items.addAll(itemDtoList);
+    }
 
 }

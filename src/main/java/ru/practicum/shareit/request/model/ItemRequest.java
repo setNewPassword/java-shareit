@@ -1,6 +1,7 @@
 package ru.practicum.shareit.request.model;
 
 import lombok.*;
+import org.hibernate.annotations.UpdateTimestamp;
 import ru.practicum.shareit.user.model.User;
 
 import javax.persistence.*;
@@ -29,6 +30,7 @@ public class ItemRequest {
     @JoinColumn(name = "requester_id", referencedColumnName = "id", nullable = false)
     private User requester;
 
+    @UpdateTimestamp
     private LocalDateTime created;
 
 }
