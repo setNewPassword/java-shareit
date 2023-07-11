@@ -10,7 +10,7 @@ import ru.practicum.shareit.item.model.Comment;
 @Service
 public interface CommentMapper {
     @Named("commentToCommentDto")
-    public static CommentDto toDto(Comment comment) {
+    static CommentDto toDto(Comment comment) {
         return CommentDto
                 .builder()
                 .id(comment.getId())
@@ -19,8 +19,6 @@ public interface CommentMapper {
                 .created(comment.getCreated())
                 .build();
     }
-
-    ;
 
     Comment toEntity(CommentDto commentDto);
 }

@@ -2,10 +2,10 @@ package ru.practicum.shareit.user.impl;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.mapstruct.factory.Mappers;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import ru.practicum.shareit.exception.EmailAlreadyExistException;
 import ru.practicum.shareit.exception.UserNotFoundException;
 import ru.practicum.shareit.user.UserMapper;
 import ru.practicum.shareit.user.UserRepository;
@@ -14,8 +14,6 @@ import ru.practicum.shareit.user.dto.UserDto;
 import ru.practicum.shareit.user.model.User;
 
 import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -23,7 +21,7 @@ import java.util.stream.Collectors;
 @Slf4j
 public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
-    private final UserMapper userMapper;
+    private final UserMapper userMapper = Mappers.getMapper(UserMapper.class);
 
     @Override
     public UserDto add(UserDto userDto) {
@@ -41,7 +39,6 @@ public class UserServiceImpl implements UserService {
                 .toBuilder()
                 .id(userId)
                 .build();
-        checkUserIsRegistered(user);
         User savedUser = userRepository
                 .findById(userId)
                 .orElseThrow(() ->
@@ -92,14 +89,6 @@ public class UserServiceImpl implements UserService {
     public void checkUserExists(long userId) {
         if (!userRepository.existsById(userId)) {
             throw new UserNotFoundException(String.format("Пользователь с id = %d не найден.", userId));
-        }
-    }
-
-    private void checkUserIsRegistered(User user) {
-        Optional<User> registeredUser = userRepository.findUserByEmail(user.getEmail());
-        if (registeredUser.isPresent() && !Objects.equals(registeredUser.get().getId(), user.getId())) {
-            throw new EmailAlreadyExistException(
-                    String.format("Пользователь с Email: %s уже зарегистрирован.", user.getEmail()));
         }
     }
 }
