@@ -8,6 +8,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import ru.practicum.shareit.exception.ItemRequestNotFoundException;
 import ru.practicum.shareit.exception.UserNotFoundException;
 import ru.practicum.shareit.item.ItemMapper;
@@ -95,8 +96,7 @@ public class ItemRequestServiceTest {
         when(userRepository.existsById(any()))
                 .thenReturn(true);
 
-        when(itemRequestRepository
-                .findAllByRequesterIdOrderByCreatedAsc(any(Long.class)))
+        when(itemRequestRepository.findAllByRequesterId(any(Long.class), any(Sort.class)))
                 .thenReturn(List.of(itemRequest));
         when(itemRepository.findByRequestIdIn(any()))
                 .thenReturn(List.of(item));
@@ -112,7 +112,7 @@ public class ItemRequestServiceTest {
         when(userRepository.findById(any(Long.class)))
                 .thenReturn(Optional.ofNullable(homerSimpson));
 
-        when(itemRequestRepository.findAllByRequesterNotLikeOrderByCreatedAsc(any(User.class), any(Pageable.class)))
+        when(itemRequestRepository.findAllByRequesterNot(any(User.class), any(Pageable.class)))
                 .thenReturn(new PageImpl<>(new ArrayList<>()));
 
         List<ItemRequestDto> result = itemRequestService.getAllByUser(0, 10, 1L);

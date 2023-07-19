@@ -4,7 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-import ru.practicum.shareit.booking.dto.BookingState;
+import ru.practicum.shareit.booking.dto.State;
 
 import javax.validation.Valid;
 import javax.validation.constraints.Min;
@@ -31,7 +31,7 @@ public class BookingController {
 
     @GetMapping("/owner")
     public ResponseEntity<Object> getAllByOwner(@RequestHeader("X-Sharer-User-Id") Long ownerId,
-                                                @RequestParam(defaultValue = "ALL") BookingState state,
+                                                @RequestParam(defaultValue = "ALL") State state,
                                                 @RequestParam(defaultValue = "0") @Min(0) int from,
                                                 @RequestParam(defaultValue = "10") @Min(1) int size) {
         return bookingClient.getAllByOwner(state, ownerId, from, size);
@@ -39,7 +39,7 @@ public class BookingController {
 
     @GetMapping
     public ResponseEntity<Object> getAllByUser(@RequestHeader("X-Sharer-User-Id") Long userId,
-                                               @RequestParam(defaultValue = "ALL") BookingState state,
+                                               @RequestParam(defaultValue = "ALL") State state,
                                                @RequestParam(defaultValue = "0") @Min(0) int from,
                                                @RequestParam(defaultValue = "10") @Min(1) int size) {
         return bookingClient.getAllByUser(state, userId, from, size);

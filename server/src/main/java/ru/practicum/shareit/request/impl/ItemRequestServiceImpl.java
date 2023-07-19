@@ -5,6 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.mapstruct.factory.Mappers;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import ru.practicum.shareit.exception.ItemRequestNotFoundException;
 import ru.practicum.shareit.exception.UserNotFoundException;
@@ -35,6 +36,7 @@ public class ItemRequestServiceImpl implements ItemRequestService {
     private final UserRepository userRepository;
     private final ItemRepository itemRepository;
     private final ItemRequestMapper itemRequestMapper = Mappers.getMapper(ItemRequestMapper.class);
+    private static final Sort SORT = Sort.by(Sort.Direction.DESC, "created");
 
     @Override
     public ItemRequestDto create(Long userId, ItemRequestDto itemRequestDto) {
@@ -58,7 +60,7 @@ public class ItemRequestServiceImpl implements ItemRequestService {
             throw new UserNotFoundException(String
                     .format("Пользователь с id = %d не найден.", userId));
         }
-        List<ItemRequestDto> itemRequestDtos = itemRequestRepository.findAllByRequesterIdOrderByCreatedAsc(userId)
+        List<ItemRequestDto> itemRequestDtos = itemRequestRepository.findAllByRequesterId(userId, SORT)
                 .stream()
                 .map(itemRequestMapper::toDto)
                 .collect(Collectors.toList());
@@ -74,8 +76,8 @@ public class ItemRequestServiceImpl implements ItemRequestService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new UserNotFoundException(String
                         .format("Пользователь с id = %d не найден.", userId)));
-        List<ItemRequestDto> itemRequestDtos = itemRequestRepository.findAllByRequesterNotLikeOrderByCreatedAsc(user,
-                        PageRequest.of(from, size))
+        List<ItemRequestDto> itemRequestDtos = itemRequestRepository.findAllByRequesterNot(user,
+                        PageRequest.of(from / size, size, SORT))
                 .stream()
                 .map(itemRequestMapper::toDto)
                 .collect(Collectors.toList());
