@@ -4,6 +4,8 @@ import org.junit.jupiter.api.Test;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
 
+import java.io.IOException;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
@@ -42,6 +44,14 @@ public class ExceptionHandlerTest {
         ErrorResponse errorResponse = handler.handleHttpRequestMethodNotSupportedEx(e);
         assertNotNull(errorResponse);
         assertEquals(errorResponse.getError(), "Отсутствует реализация метода.");
+    }
+
+    @Test
+    public void handleThrowableTest() {
+        IOException e = new IOException("Неизвестная ошибка.");
+        ErrorResponse errorResponse = handler.handleThrowable(e);
+        assertNotNull(errorResponse);
+        assertEquals(errorResponse.getError(), "Internal server error: Неизвестная ошибка.");
     }
 
 }

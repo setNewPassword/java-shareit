@@ -56,6 +56,13 @@ public class ErrorHandler {
         return new ErrorResponse("Unknown state: " + exception.getMessage());
     }
 
+    @ExceptionHandler
+    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+    protected ErrorResponse handleThrowable(Throwable throwable) {
+        log.error("{}: {}", throwable.getClass().getSimpleName(), throwable.getMessage());
+        return new ErrorResponse("Internal server error: " + throwable.getMessage());
+    }
+
     private void log(Exception ex) {
         log.error("{}: {}", ex.getClass().getSimpleName(), ex.getMessage());
     }
